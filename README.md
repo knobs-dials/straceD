@@ -49,6 +49,7 @@ music-sync-disk(9673) end-of-strace
 
 ## Arguments
 
+```
 Usage: straceD [options]
 
 Options:
@@ -63,3 +64,4 @@ Options:
   -s, --sleep      time in seconds to sleep between checks. Default: 1.0
   -q, --quiet      suppress some of our own stdout messages, and some of
                    strace's attach/detach stuff
+```
