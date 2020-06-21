@@ -1,0 +1,238 @@
+#!/usr/bin/python
+'''
+    strace everything that has recently been in iowait state
+    Also redirects that to stdout so that you can grep it more easily.
+
+    Meant as a simple-and-stupid "why are my drives churning" 
+'''
+
+import optparse
+import os
+import sys
+import time
+import subprocess
+import threading
+import thread
+
+watching = {} # PID -> lasttime
+
+def check_D_jobs():
+    ''' Runs ps, reports back anything with D in the state, 
+        as a (pid,username,state,cpupercent,cputime,command) tuple
+    '''
+    cmd = "ps -eo pid,user,stat,%cpu,time,comm" # command last so rest of line is the command, and dont have to worry about splitting on spaces
+    p = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True)
+    output,err = p.communicate()
+    p.stdout.close()
+    
+    # do our checks
+    report_lines=[]
+    for line in output.splitlines():
+        if ':' in line  and  len(line)>20: # TODO: better check
+            if '%CPU' in line: # header line
+                continue
+            l = line.strip().split(None,5) 
+            #print `l`
+            pid,uname,state,cpupercent,cputime,command = l
+            if 'D' in state:
+                report_lines.append( (int(pid),uname,state,int(float(cpupercent)),cputime,command) )
+    return report_lines
+
+
+
+if __name__ == '__main__':
+    if not os.geteuid() == 0:
+        # TODO: read up on capabilities, SELinux, and more.
+        print "Need to run as root to be able to strace"
+        sys.exit(-1)
+
+    try:
+        import setproctitle
+        setproctitle.setproctitle(os.path.basename(sys.argv[0]))
+    except ImportError:
+        pass
+
+    
+    p=optparse.OptionParser()
+
+    p.add_option('-c', default=True,   action="store_true", dest='c',  
+                 help="use strace's -c, which prints a syscall summary but not the individual ones (is the default)")
+
+    p.add_option('-C', default=False,   action="store_true", dest='C',  
+                 help="use strace's -C, which prints both individual syscalls and a summary (default is -c)")
+
+    p.add_option('-f', default=False,   action="store_true", dest='f',  
+                 help="use strace's -f, which follows forked processes.")
+    
+    p.add_option('--forget', default='5',   action="store", dest='forget',  
+                 help="How quickly to forget a process that is now behaving itself (no longer in D state). Default: 5")
+    
+    #p.add_option('--repeat', default='2',   action="store", dest='forget',  
+    #             help="Only strace when we see a proces at least this many times (default: 2). Meant to skip the small-fry syscall waiting.")
+
+    p.add_option('-s','--sleep', default='1.0',   action="store_true", dest='sleep',  
+                 help="time in seconds to sleep between checks. Default: 1.0")
+
+    p.add_option('-q','--quiet', default=False,   action="store_true", dest='quiet',  
+                 help="suppress some of our own stdout messages, and some of strace's attach/detach stuff")
+    
+    #p.add_option('--repeat', default='2',   action="store", dest='repeat',  
+    #             help="When suppressing adjacent repeated syscalls, how often (seconds) to still report them")
+    
+    #p.add_option('--log', default=False,   action="store_true", dest='log',  
+    #             help="Whether to log strace output to files (currently name.PID.log))")
+
+    
+    options,args = p.parse_args()
+    
+    add_args = []
+    if options.C:
+        add_args.append('-C')
+        add_args.append('-y') # TODO: move if/when allowing non-summary case
+        add_args.append('-t') # ditto
+    else:
+        add_args.append('-c')
+    # currently no way to suppress the summary. It's useful.
+    
+    if options.f:
+        add_args.append('-f')
+    if options.quiet:
+        add_args.append('-q')
+        
+    
+
+    sleep_time       = float(options.sleep)        
+    forget_after_sec = float(options.forget)
+    sleep_time       = float(options.sleep)    
+    repeat_emit_interval_sec = 2.0
+
+    ###
+
+    seen_pids    = {} # pid -> time() last seen
+    pid_details  = {} # pid -> (uname,state,cpupercent,cputime,command)
+    stracing     = {} # pid -> subprocess.Popen object
+    stop_pids    = {} # TODO
+    
+    
+    # thread function that transforms strace's output. Also relies on the above as globals
+    def filtered_strace(pid, name, fh, writefile=False):
+        #if writefile:
+        #    open('%s_%d_%d.log' datetime.datetime.now().sprintf(), pid, name)
+        try:
+            # CONSIDER: seletively summarize (e.g. deal with many ajacent read()s   /  write()s
+            prev = ''
+            count = 0
+            last_report = 0
+            while True:
+                d = fh.readline()
+                if len(d)==0: # EOF. Not actually a good test but maybe good enough in the case of strace?
+                    if not options.quiet:
+                        print '%s(%d) end-of-strace'%(name, pid)
+                    break
+                d = d.rstrip()
+
+                #print `d`
+
+                wpt_time = False
+                wpt_diff = False
+                                
+                if d != prev:
+                    wtp_diff = True
+                if time.time()-last_report > repeat_emit_interval_sec:
+                    wtp_time = True
+
+                if wtp_time or wtp_diff: # then print and reset count
+                    # Not sure this works. also TODO: rethink whether it's even correct. Or is useful at all.
+                    if count>0:
+                        print '%s(%d): (repeated %d times) %s'%(name, pid, count, prev)
+                    else:
+                        print '%s(%d): %s'%(name, pid, prev)
+                    count = 0
+                    last_report = time.time()
+                    sys.stdout.flush()
+                    
+                else: # same, and interval didn't call for printing
+                    count += 1 # just count that it's different
+
+                if pid in stop_pids:
+                    stop_pids.pop(pid)
+                    break
+                
+                prev = d
+            if not options.quiet:
+                print "Reader thread for %s(%d) finished "%(name,pid)
+                
+        except KeyboardInterrupt:
+            thread.interrupt_main()
+
+
+    while True: # break with Ctrl-C, basically...
+        
+          # see what's currently misbehaving
+          tups = check_D_jobs()
+          for pid,uname,state,cpupercent,cputime,command in tups:
+              seen_pids[pid] = time.time()
+              pid_details[pid] = (uname,state,cpupercent,cputime,command)
+              
+          if len(seen_pids)==0:
+              if not options.quiet:
+                  print "Everything is behaving..."
+
+
+          for pid in seen_pids.keys(): # keys() for a copy
+              age = time.time()-seen_pids[pid]
+
+              uname,state,cpupercent,cputime,command = pid_details[pid]
+
+              # remove things that have behaved lately
+              if age > forget_after_sec:
+                  if not options.quiet:
+                      print "Process is behaving now, forgetting (PID %d, %r)"%(pid, command)
+                  seen_pids.pop(    pid )
+                  pid_details.pop( pid )
+                  (p_or_none,th) = stracing[pid]
+                  if p_or_none:
+                      p_or_none.terminate() # maybe add some checks of result?
+                      # and is it necessary to close things?
+                  if th:
+                      if not options.quiet:
+                          print "Stopping output thread for (PID %d, %r)"%(pid, command)
+                      stop_pids[pid] = True
+                      
+                      #print "join"
+                      #th.join() # TODO: figure out whether this is necessary for cleanup, and/or make reader thread less hangup-sensitive
+                      # and/or separately do an if-not-is_active-then-join thing each iteration
+                      #print "/join"
+
+              # worth noting, check if we're already following it
+              else:
+                  if pid in stracing: # if currently stracing
+                      pass # then yay, do nothing more
+
+                      
+                  else: # not stracing, try to do so
+                      # Try to ignore kernel threads
+                      # https://stackoverflow.com/questions/12213445/identifying-kernel-threads
+                      kernelproc = False
+                      try: 
+                          os.readlink('/proc/%d/exe'%pid)
+                      except OSError, e:
+                          if e.errno == 2:
+                              kernelproc = True
+
+                      if kernelproc:
+                          if not options.quiet:
+                              print "Not stracing, probably a kernel process (PID %d, %r)"%(pid, command)
+                          stracing[pid] = (None,None)
+                      else:
+                          #if not options.quiet:
+                          print "Starting to trace process (PID %d, %r)"%(pid, command)
+                          p = subprocess.Popen('strace %s -p %d'%(' '.join(add_args), pid),
+                                               shell=True,
+                                               stderr=subprocess.PIPE)
+
+                          print_thread = threading.Thread(target=filtered_strace, args=(pid, command, p.stderr, ))
+                          print_thread.start()
+                          stracing[pid] = (p,print_thread)
+
+          time.sleep( sleep_time )
