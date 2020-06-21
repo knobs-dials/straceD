@@ -6,12 +6,10 @@ straces them if they do so persistently, and stops once they behave.
 Meant a relatively automatic 'what programs are making my drives churn so hard / are bothered by this?' ...though has other uses.
 
 
-Defaults to only summarizing the calls (strace's -c parameter),
-because when disk contention happens, it tends to create a choir of processes
-and this gives you a little more hope at guessing which one was the cause.
+By default you get a summary once that process has exited - in that it uses strace's -c argument to summarize the most common calls. This can be useful if you point this script's output at logs.
 
-...note this does mean you only get output when that process exits.
-If you want all the syscalls, use the -C argument instead.
+If you want a more live and much messier feed, use -C to get all the syscalls of the process.
+
 
 ## Example
 
