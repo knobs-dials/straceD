@@ -70,8 +70,8 @@ if __name__ == '__main__':
     #p.add_option('--repeat', default='2',   action="store", dest='forget',  
     #             help="Only strace when we see a proces at least this many times (default: 2). Meant to skip the small-fry syscall waiting.")
 
-    p.add_option('-s','--sleep', default='1.0',   action="store_true", dest='sleep',  
-                 help="time to sleep between checks, in seconds. Default: 1.0")
+    p.add_option('-s','--sleep', default='0.5',   action="store", dest='sleep',  
+                 help="time to sleep between checks, in seconds. Default: 0.5")
 
     p.add_option('-q','--quiet', default=False,   action="store_true", dest='quiet',  
                  help="suppress some of our own stdout messages, and some of strace's attach/detach stuff")
