@@ -3,10 +3,10 @@
 Periodically checks for processes that are in D state (IOwait),
 straces them if they do so persistently, and stops once they behave.
 
-Meant a relatively automatic 'what programs are making my drives churn so hard / are bothered by this?' ...though has other uses.
+Meant as an automatic 'what programs are making my drives churn so hard?', though it has other uses.
 
 
-By default you get a summary once that process has exited - in that it uses strace's -c argument to summarize the most common calls. This can be useful if you point this script's output at logs.
+By default you get a summary only once that process has exited - in that it uses strace's -c argument to summarize the most common calls. This can be useful if you point this script's output at logs.
 
 If you want a more live and much messier feed, use -C to get all the syscalls of the process.
 
