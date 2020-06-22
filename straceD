@@ -56,22 +56,22 @@ if __name__ == '__main__':
     p=optparse.OptionParser()
 
     p.add_option('-c', default=True,   action="store_true", dest='c',  
-                 help="use strace's -c, which prints a syscall summary but not the individual ones (is the default)")
+                 help="use strace's -c, which prints a syscall summary but not the individual ones (default)")
 
     p.add_option('-C', default=False,   action="store_true", dest='C',  
-                 help="use strace's -C, which prints both individual syscalls and a summary (default is -c)")
+                 help="use strace's -C, which prints both individual syscalls and a summary")
 
     p.add_option('-f', default=False,   action="store_true", dest='f',  
                  help="use strace's -f, which follows forked processes.")
     
     p.add_option('--forget', default='5',   action="store", dest='forget',  
-                 help="How quickly to forget a process that is now behaving itself (no longer in D state). Default: 5")
+                 help="After how many seconds of behaving (no longer in D state) we forget about a process, in seconds. Default: 5")
     
     #p.add_option('--repeat', default='2',   action="store", dest='forget',  
     #             help="Only strace when we see a proces at least this many times (default: 2). Meant to skip the small-fry syscall waiting.")
 
     p.add_option('-s','--sleep', default='1.0',   action="store_true", dest='sleep',  
-                 help="time in seconds to sleep between checks. Default: 1.0")
+                 help="time to sleep between checks, in seconds. Default: 1.0")
 
     p.add_option('-q','--quiet', default=False,   action="store_true", dest='quiet',  
                  help="suppress some of our own stdout messages, and some of strace's attach/detach stuff")
