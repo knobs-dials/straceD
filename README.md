@@ -51,16 +51,17 @@ music-sync-disk(9673) end-of-strace
 Usage: straceD [options]
 
 Options:
-  -h, --help       show this help message and exit
-  -c               use strace's -c, which prints a syscall summary but not the
-                   individual ones (default)
-  -C               use strace's -C, which prints both individual syscalls and
-                   a summary
-  -f               use strace's -f, which follows forked processes.
-  --forget=FORGET  After how many seconds of behaving (no longer in D state)
-                   we forget about a process, in seconds. Default: 5
-  -s, --sleep      time to sleep between checks, in seconds. Default: 1.0
-  -q, --quiet      suppress some of our own stdout messages, and some of
-                   strace's attach/detach stuff
-
+  -h, --help            show this help message and exit
+  -c                    use strace's -c, which prints a syscall summary but
+                        not the individual ones (default)
+  -C                    use strace's -C, which prints both individual syscalls
+                        and a summary
+  -f                    use strace's -f, which follows forked processes.
+  --forget=FORGET       After how many seconds of behaving (no longer in D
+                        state) we forget about a process, in seconds. Default:
+                        5
+  -s SLEEP, --sleep=SLEEP
+                        time to sleep between checks, in seconds. Default: 0.5
+  -q, --quiet           suppress some of our own stdout messages, and some of
+                        strace's attach/detach stuff
 ```
