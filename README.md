@@ -42,7 +42,7 @@ music-sync-disk(9673) end-of-strace
 
 ```
 
-...which is a process doing a large directory treewalk.
+...which was a process doing a large directory treewalk.
 
 
 ## Arguments
