@@ -20,8 +20,8 @@ def check_D_jobs():
     ''' Runs ps, reports back anything with D in the state, 
         as a (pid,username,state,cpupercent,cputime,command) tuple
     '''
-    cmd = "ps -eo pid,user,stat,%cpu,time,comm" # command last so rest of line is the command, and dont have to worry about splitting on spaces
-    p = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True)
+    cmd = "ps -eo pid,user,stat,%cpu,time,comm".split() # command last so rest of line is the command, and dont have to worry about splitting on spaces
+    p = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=False)
     output,err = p.communicate()
     p.stdout.close()
     
@@ -192,7 +192,7 @@ if __name__ == '__main__':
                   if p_or_none:
                       #print "killing pid %d  (strace that was washing pid %s)"%(p_or_none.pid, pid)
                       p_or_none.terminate()
-                      p_or_none.wait()      # Apparently the wait is necessary to avoid zombies, meaning TODO: read up on the details.
+                      p_or_none.wait()      # avoid zombies
                       # and is it necessary to close things?
                   if th:
                       if not options.quiet:
