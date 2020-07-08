@@ -131,8 +131,6 @@ if __name__ == '__main__':
                     break
                 d = d.rstrip()
 
-                #print `d`
-
                 wpt_time = False
                 wpt_diff = False
                                 
@@ -192,7 +190,9 @@ if __name__ == '__main__':
                   pid_details.pop( pid )
                   (p_or_none,th) = stracing[pid]
                   if p_or_none:
-                      p_or_none.terminate() # maybe add some checks of result?
+                      #print "killing pid %d  (strace that was washing pid %s)"%(p_or_none.pid, pid)
+                      p_or_none.terminate()
+                      p_or_none.wait()      # Apparently the wait is necessary to avoid zombies, meaning TODO: read up on the details.
                       # and is it necessary to close things?
                   if th:
                       if not options.quiet:
@@ -227,8 +227,11 @@ if __name__ == '__main__':
                       else:
                           #if not options.quiet:
                           print "Starting to trace process (PID %d, %r)"%(pid, command)
-                          p = subprocess.Popen('strace %s -p %d'%(' '.join(add_args), pid),
-                                               shell=True,
+                          cmd = ['strace']
+                          cmd.extend( add_args )
+                          cmd.extend(['-p',str(pid)])
+                          p = subprocess.Popen(cmd,
+                                               shell=False,
                                                stderr=subprocess.PIPE)
 
                           print_thread = threading.Thread(target=filtered_strace, args=(pid, command, p.stderr, ))
