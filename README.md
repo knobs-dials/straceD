@@ -11,6 +11,9 @@ By default you get a summary only once that process has exited - in that it uses
 If you want a more live and much messier feed, use -C to get all the syscalls of the process.
 
 
+I assume a process can be straced only once at a time, so think about possible clashes with similar tools, debuggers and such.
+
+
 ## Example
 
 ```
