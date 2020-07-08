@@ -61,8 +61,7 @@ Options:
                         and a summary
   -f                    use strace's -f, which follows forked processes.
   --forget=FORGET       After how many seconds of behaving (no longer in D
-                        state) we forget about a process, in seconds. Default:
-                        5
+                        state) we forget about a process. Default: 5
   -s SLEEP, --sleep=SLEEP
                         time to sleep between checks, in seconds. Default: 0.5
   -q, --quiet           suppress some of our own stdout messages, and some of

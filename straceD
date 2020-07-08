@@ -65,7 +65,7 @@ if __name__ == '__main__':
                  help="use strace's -f, which follows forked processes.")
     
     p.add_option('--forget', default='5',   action="store", dest='forget',  
-                 help="After how many seconds of behaving (no longer in D state) we forget about a process, in seconds. Default: 5")
+                 help="After how many seconds of behaving (no longer in D state) we forget about a process. Default: 5")
     
     #p.add_option('--repeat', default='2',   action="store", dest='forget',  
     #             help="Only strace when we see a proces at least this many times (default: 2). Meant to skip the small-fry syscall waiting.")
