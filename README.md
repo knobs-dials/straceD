@@ -77,7 +77,7 @@ Options:
 
 ## TODO
 
-* test whether I've actually solved the zombie problem - it seems not.
+* the subprocess code had more issues than I thought, there are still zombies. Working on it.
 
 * pass through strace -e filtering
 
