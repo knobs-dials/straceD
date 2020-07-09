@@ -1,17 +1,23 @@
 ## straceD
 
-Periodically checks for processes that are in D state (IOwait),
-straces them if they do so persistently, and stops once they behave.
+Periodically checks for processes that are in D state (IOwait), straces them if they keep doing so, and stops once they behave.
 
 Meant as an automatic 'what programs are making my drives churn so hard?', though it has other uses.
 
 
-By default you get a summary only once that process has exited - in that it uses strace's -c argument to summarize the most common calls. This can be useful if you point this script's output at logs.
+By default you get a summary only once that process has exited - in that it uses strace's -c argument to summarize the most common calls. This can be useful if you point this script's output at logs for a while.
 
-If you want a more live and much messier feed, use -C to get all the syscalls of the process.
+If you want a more realtime and much messier feed, use -C to get all the syscalls of the process. TODO: pass through strace filtering.
 
 
-I assume a process can be straced only once at a time, so think about possible clashes with similar tools, debuggers and such.
+## Considerations
+
+You need root.
+
+I think a process can be straced only once at a time, so think about possible clashes with similar tools, debuggers and such.
+
+The 'if they keep doing so' is coarse-grained in that it works out as 'more than half a second' (with defaults). It's based on seinge the same PID in ps output more than once. We can miss small things, which you could call a feature, I suppose.
+
 
 
 ## Example
@@ -67,3 +73,11 @@ Options:
   -q, --quiet           suppress some of our own stdout messages, and some of
                         strace's attach/detach stuff
 ```
+
+
+## TODO
+
+* the subprocess code had more issues than I thought, there are still zombies. Working on it.
+
+* pass through strace -e filtering
+
