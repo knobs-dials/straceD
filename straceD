@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 '''
     strace everything that has recently been in iowait state
     Also redirects that to stdout so that you can grep it more easily.
@@ -12,7 +12,7 @@ import sys
 import time
 import subprocess
 import threading
-import thread
+import _thread
 
 watching = {} # PID -> lasttime
 
@@ -28,12 +28,12 @@ def check_D_jobs():
     # do our checks
     report_lines=[]
     for line in output.splitlines():
-        if ':' in line  and  len(line)>20: # TODO: better check
-            if '%CPU' in line: # header line
+        if b':' in line  and  len(line)>20: # TODO: better check
+            if b'%CPU' in line: # header line
                 continue
             l = line.strip().split(None,5) 
             pid,uname,state,cpupercent,cputime,command = l
-            if 'D' in state:
+            if b'D' in state:
                 report_lines.append( (int(pid),uname,state,int(float(cpupercent)),cputime,command) )
     return report_lines
 
@@ -42,7 +42,7 @@ def check_D_jobs():
 if __name__ == '__main__':
     if not os.geteuid() == 0:
         # TODO: read up on capabilities, SELinux, and more.
-        print "Need to run as root to be able to strace"
+        print("Need to run as root to be able to strace")
         sys.exit(-1)
         
     try:
@@ -128,7 +128,7 @@ if __name__ == '__main__':
                 d = fh.readline()
                 if len(d)==0: # EOF. Not actually a good test but maybe good enough in the case of strace?
                     if not options.quiet:
-                        print '%s(%d) end-of-strace'%(name, pid)
+                        print('%s(%d) end-of-strace'%(name, pid))
                     break
                 d = d.rstrip()
 
@@ -143,9 +143,9 @@ if __name__ == '__main__':
                 if wtp_time or wtp_diff: # then print and reset count
                     # Not sure this works. also TODO: rethink whether it's even correct. Or is useful at all.
                     if count>0:
-                        print '%s(%d): (repeated %d times) %s'%(name, pid, count, prev)
+                        print('%s(%d): (repeated %d times) %s'%(name, pid, count, prev))
                     else:
-                        print '%s(%d): %s'%(name, pid, prev)
+                        print('%s(%d): %s'%(name, pid, prev))
                     count = 0
                     last_report = time.time()
                     sys.stdout.flush()
@@ -159,10 +159,10 @@ if __name__ == '__main__':
                 
                 prev = d
             if not options.quiet:
-                print "Reader thread for %s(%d) finished "%(name,pid)
+                print("Reader thread for %s(%d) finished "%(name,pid))
                 
         except KeyboardInterrupt:
-            thread.interrupt_main()
+            _thread.interrupt_main()
 
 
     while True: # break with Ctrl-C, basically...
@@ -175,10 +175,10 @@ if __name__ == '__main__':
               
           if len(seen_pids)==0:
               if not options.quiet:
-                  print "Everything is behaving..."
+                  print("Everything is behaving...")
 
 
-          for pid in seen_pids.keys(): # keys() for a copy
+          for pid in list(seen_pids.keys()): # keys() for a copy
               age = time.time() - seen_pids[pid]
 
               uname,state,cpupercent,cputime,command = pid_details[pid]
@@ -189,7 +189,7 @@ if __name__ == '__main__':
                   #   There's a bunch of edge cases that right now I'm just duct taping around,
                   #   e.g. exceptions here, that would effectively lead to bad cleanup so zombies
                   if not options.quiet:
-                      print "Process is behaving now, forgetting (PID %d, %r)"%(pid, command)
+                      print("Process is behaving now, forgetting (PID %d, %r)"%(pid, command))
                   seen_pids.pop(    pid )
                   pid_details.pop( pid )
                   (p_or_none,th) = stracing[pid]
@@ -201,8 +201,9 @@ if __name__ == '__main__':
                               tries+=1
                               p_or_none.stderr.close()
                               break
-                          except IOError: # most likely "close() called during concurrent operation". I'm no sure about the best course of action yet.
-                              #print "BLA"
+                          except IOError: # most likely "close() called during concurrent operation".
+                              # I'm no sure about the best course of action yet. Also there's a suggestion somewhere that this no longer happens in py3.
+                              print "BLA"
                               time.sleep(0.001)
                               pass
                       try:
@@ -234,20 +235,20 @@ if __name__ == '__main__':
                       kernelproc = False
                       try: 
                           os.readlink('/proc/%d/exe'%pid)
-                      except OSError, e:
+                      except OSError as e:
                           if e.errno == 2:
                               kernelproc = True
 
                       if kernelproc:
                           if not options.quiet:
-                              print "Not stracing, probably a kernel process (PID %d, %r)"%(pid, command)
+                              print("Not stracing, probably a kernel process (PID %d, %r)"%(pid, command))
                           stracing[pid] = (None,None)
                       else:
                           # Threading is used to make it easier to follow multiple things.
                           #   It introduces its own edge cases, though...
                           
                           #if not options.quiet:
-                          print "Starting to trace process (PID %d, %r)"%(pid, command)
+                          print("Starting to trace process (PID %d, %r)"%(pid, command))
                           cmd = ['strace']
                           cmd.extend( add_args )
                           cmd.extend(['-p',str(pid)])
