@@ -32,7 +32,6 @@ def check_D_jobs():
             if '%CPU' in line: # header line
                 continue
             l = line.strip().split(None,5) 
-            #print `l`
             pid,uname,state,cpupercent,cputime,command = l
             if 'D' in state:
                 report_lines.append( (int(pid),uname,state,int(float(cpupercent)),cputime,command) )
@@ -45,7 +44,7 @@ if __name__ == '__main__':
         # TODO: read up on capabilities, SELinux, and more.
         print "Need to run as root to be able to strace"
         sys.exit(-1)
-
+        
     try:
         import setproctitle
         setproctitle.setproctitle(os.path.basename(sys.argv[0]))
@@ -81,6 +80,8 @@ if __name__ == '__main__':
     
     #p.add_option('--log', default=False,   action="store_true", dest='log',  
     #             help="Whether to log strace output to files (currently name.PID.log))")
+
+    # TODO: pass through -e arguments to strace 
 
     
     options,args = p.parse_args()
@@ -178,29 +179,46 @@ if __name__ == '__main__':
 
 
           for pid in seen_pids.keys(): # keys() for a copy
-              age = time.time()-seen_pids[pid]
+              age = time.time() - seen_pids[pid]
 
               uname,state,cpupercent,cputime,command = pid_details[pid]
 
               # remove things that have behaved lately
               if age > forget_after_sec:
+                  # TODO: read a bunch more manual.
+                  #   There's a bunch of edge cases that right now I'm just duct taping around,
+                  #   e.g. exceptions here, that would effectively lead to bad cleanup so zombies
                   if not options.quiet:
                       print "Process is behaving now, forgetting (PID %d, %r)"%(pid, command)
                   seen_pids.pop(    pid )
                   pid_details.pop( pid )
                   (p_or_none,th) = stracing[pid]
                   if p_or_none:
+                      tries = 0
                       #print "killing pid %d  (strace that was washing pid %s)"%(p_or_none.pid, pid)
-                      p_or_none.terminate()
+                      while tries < 10:
+                          try:
+                              tries+=1
+                              p_or_none.stderr.close()
+                              break
+                          except IOError: # most likely "close() called during concurrent operation". I'm no sure about the best course of action yet.
+                              #print "BLA"
+                              time.sleep(0.001)
+                              pass
+                      try:
+                          p_or_none.terminate()
+                      except OSError:
+                          #print "Already dead?"
+                          pass
                       p_or_none.wait()      # avoid zombies
                       # and is it necessary to close things?
                   if th:
-                      if not options.quiet:
-                          print "Stopping output thread for (PID %d, %r)"%(pid, command)
+                      #if not options.quiet:
+                      #    print "Stopping output thread for (PID %d, %r)"%(pid, command)
                       stop_pids[pid] = True
                       
                       #print "join"
-                      #th.join() # TODO: figure out whether this is necessary for cleanup, and/or make reader thread less hangup-sensitive
+                      th.join() # TODO: figure out whether this is necessary for cleanup, and/or make reader thread less hangup-sensitive
                       # and/or separately do an if-not-is_active-then-join thing each iteration
                       #print "/join"
 
@@ -225,6 +243,9 @@ if __name__ == '__main__':
                               print "Not stracing, probably a kernel process (PID %d, %r)"%(pid, command)
                           stracing[pid] = (None,None)
                       else:
+                          # Threading is used to make it easier to follow multiple things.
+                          #   It introduces its own edge cases, though...
+                          
                           #if not options.quiet:
                           print "Starting to trace process (PID %d, %r)"%(pid, command)
                           cmd = ['strace']
