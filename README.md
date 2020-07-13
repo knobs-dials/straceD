@@ -1,6 +1,6 @@
 ## straceD
 
-Periodically checks for processes that are in D state (IOwait), straces them if they keep doing so, and stops once they behave.
+Periodically checks for processes that are in D state (IOwait), straces them if they keep doing that, and stops stracing once they behave.
 
 Meant as an automatic 'what programs are making my drives churn so hard?', though it has other uses.
 
