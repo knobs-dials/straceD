@@ -16,7 +16,7 @@ You need root.
 
 I think a process can be straced only once at a time, so think about possible clashes with similar tools, debuggers and such.
 
-The 'if they keep doing so' is coarse-grained in that it works out as 'more than half a second' (with defaults). It's based on seinge the same PID in ps output more than once. We can miss small things, which you could call a feature, I suppose.
+The 'if they keep doing so' is 'if we see it ps output more than once, half a second apart' (with defaults), which is coarse and can miss small things. Though that's tweakable, and arguably a feature.
 
 
 
