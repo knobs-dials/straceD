@@ -10,12 +10,20 @@ import optparse
 import os
 import sys
 import time
+import datetime
 import subprocess
 import threading
 import _thread
 
 watching = {} # PID -> lasttime
 
+def timeprint(s):
+    #if type(s) is bytes:
+    #    s = s.decode('u8') 
+    now = datetime.datetime.now()
+    now_s = '%02d:%02d:%05.2f'%(now.hour, now.minute, now.second + now.microsecond/1E6) # want rounding of microsceonds, so not using strftime
+    print('[%s] %s'%(now_s, s))
+    
 def check_D_jobs():
     ''' Runs ps, reports back anything with D in the state, 
         as a (pid,username,state,cpupercent,cputime,command) tuple
@@ -42,7 +50,7 @@ def check_D_jobs():
 if __name__ == '__main__':
     if not os.geteuid() == 0:
         # TODO: read up on capabilities, SELinux, and more.
-        print("Need to run as root to be able to strace")
+        timeprint("Need to run as root to be able to strace")
         sys.exit(-1)
         
     try:
@@ -72,8 +80,12 @@ if __name__ == '__main__':
     p.add_option('-s','--sleep', default='0.5',   action="store", dest='sleep',  
                  help="time to sleep between checks, in seconds. Default: 0.5")
 
-    p.add_option('-q','--quiet', default=False,   action="store_true", dest='quiet',  
-                 help="suppress some of our own stdout messages, and some of strace's attach/detach stuff")
+    p.add_option('-v','--verbose', default=0,   action="count", dest='verbosity',  
+                 help="How much extra detail to print (our own stuff, plus e.g. whether to filter out strace's attach/detach stuff)")
+
+    p.add_option('-e', default=None,   action="store", dest='expr',
+                 help="expression to pass through to strace -e, for example -e file. Note that unlike strace itself, our option parsing needs that space there. Note also that this also filters the summary output. ")
+
     
     #p.add_option('--repeat', default='2',   action="store", dest='repeat',  
     #             help="When suppressing adjacent repeated syscalls, how often (seconds) to still report them")
@@ -87,17 +99,21 @@ if __name__ == '__main__':
     options,args = p.parse_args()
     
     add_args = []
+    
+    if options.expr != None:
+        add_args.extend( ['-e',options.expr] )
+    
     if options.C:
         add_args.append('-C')
         add_args.append('-y') # TODO: move if/when allowing non-summary case
-        add_args.append('-t') # ditto
+        #add_args.append('-t') # More uniform if we print time, though strace's times would be more accurate. Hm.
     else:
         add_args.append('-c')
     # currently no way to suppress the summary. It's useful.
     
     if options.f:
         add_args.append('-f')
-    if options.quiet:
+    if options.verbosity==0:
         add_args.append('-q')
         
     
@@ -121,14 +137,14 @@ if __name__ == '__main__':
         #    open('%s_%d_%d.log' datetime.datetime.now().sprintf(), pid, name)
         try:
             # CONSIDER: seletively summarize (e.g. deal with many ajacent read()s   /  write()s
-            prev = ''
+            prev = b''
             count = 0
             last_report = 0
             while True:
                 d = fh.readline()
                 if len(d)==0: # EOF. Not actually a good test but maybe good enough in the case of strace?
-                    if not options.quiet:
-                        print('%s(%d) end-of-strace'%(name, pid))
+                    if options.verbosity >= 1:
+                        timeprint('%s(%d) end-of-strace'%(name.decode('u8'), pid))
                     break
                 d = d.rstrip()
 
@@ -143,9 +159,9 @@ if __name__ == '__main__':
                 if wtp_time or wtp_diff: # then print and reset count
                     # Not sure this works. also TODO: rethink whether it's even correct. Or is useful at all.
                     if count>0:
-                        print('%s(%d): (repeated %d times) %s'%(name, pid, count, prev))
+                        timeprint('%s(%d): (repeated %d times) %s'%(name.decode('u8'), pid, count, prev.decode('u8')))
                     else:
-                        print('%s(%d): %s'%(name, pid, prev))
+                        timeprint('%s(%d): %s'%(name.decode('u8'), pid, prev.decode('u8')))
                     count = 0
                     last_report = time.time()
                     sys.stdout.flush()
@@ -158,8 +174,8 @@ if __name__ == '__main__':
                     break
                 
                 prev = d
-            if not options.quiet:
-                print("Reader thread for %s(%d) finished "%(name,pid))
+            if options.verbosity >= 2:
+                timeprint("Reader thread for %s(%d) finished "%(name,pid))
                 
         except KeyboardInterrupt:
             _thread.interrupt_main()
@@ -174,8 +190,8 @@ if __name__ == '__main__':
               pid_details[pid] = (uname,state,cpupercent,cputime,command)
               
           if len(seen_pids)==0:
-              if not options.quiet:
-                  print("Everything is behaving...")
+              if options.verbosity >= 2:
+                  timeprint("Everything is behaving...")
 
 
           for pid in list(seen_pids.keys()): # keys() for a copy
@@ -188,22 +204,21 @@ if __name__ == '__main__':
                   # TODO: read a bunch more manual.
                   #   There's a bunch of edge cases that right now I'm just duct taping around,
                   #   e.g. exceptions here, that would effectively lead to bad cleanup so zombies
-                  if not options.quiet:
-                      print("Process is behaving now, forgetting (PID %d, %r)"%(pid, command))
+                  if not options.verbosity >= 1:
+                      timeprint("Process is behaving now, forgetting %s(%d)"%(command.decode('u8'),pid))
                   seen_pids.pop(    pid )
                   pid_details.pop( pid )
                   (p_or_none,th) = stracing[pid]
                   if p_or_none:
                       tries = 0
-                      #print "killing pid %d  (strace that was washing pid %s)"%(p_or_none.pid, pid)
                       while tries < 10:
                           try:
                               tries+=1
                               p_or_none.stderr.close()
                               break
-                          except IOError: # most likely "close() called during concurrent operation".
+                          except IOError as e: # most likely "close() called during concurrent operation".
                               # I'm no sure about the best course of action yet. Also there's a suggestion somewhere that this no longer happens in py3.
-                              print "BLA"
+                              timeprint( "BLA %s"%str(e) )
                               time.sleep(0.001)
                               pass
                       try:
@@ -214,8 +229,8 @@ if __name__ == '__main__':
                       p_or_none.wait()      # avoid zombies
                       # and is it necessary to close things?
                   if th:
-                      #if not options.quiet:
-                      #    print "Stopping output thread for (PID %d, %r)"%(pid, command)
+                      if options.verbosity >= 2:
+                          print( "Stopping output thread for %s(%d)"%(command.decode('u8'),pid) )
                       stop_pids[pid] = True
                       
                       #print "join"
@@ -240,18 +255,19 @@ if __name__ == '__main__':
                               kernelproc = True
 
                       if kernelproc:
-                          if not options.quiet:
-                              print("Not stracing, probably a kernel process (PID %d, %r)"%(pid, command))
+                          if options.verbosity >= 1:
+                              timeprint("Not stracing, probably a kernel process %s(%d)"%(command.decode('u8'),pid))
                           stracing[pid] = (None,None)
                       else:
                           # Threading is used to make it easier to follow multiple things.
                           #   It introduces its own edge cases, though...
                           
-                          #if not options.quiet:
-                          print("Starting to trace process (PID %d, %r)"%(pid, command))
+                          #if options.verbosity >= 1:
+                          timeprint("Starting to trace process %s(%d)"%(command.decode('u8'),pid))
                           cmd = ['strace']
                           cmd.extend( add_args )
                           cmd.extend(['-p',str(pid)])
+                          #print('Running %r for %s'%(cmd, command))
                           p = subprocess.Popen(cmd,
                                                shell=False,
                                                stderr=subprocess.PIPE)
