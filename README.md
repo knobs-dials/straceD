@@ -7,7 +7,7 @@ Meant as an automatic 'what programs are making my drives churn so hard, and mor
 
 By default you get a summary only once that process has exited - in that we use strace's -c argument to just print a summarize the most common calls. This can be useful if you point this script's output at logs for a while.
 
-If you want a more realtime and much messier feed, use -C to get all the syscalls of the process. TODO: pass through strace filtering.
+If you want a more realtime and much messier feed, use -C to get all the syscalls of the process.
 
 
 ## Considerations
@@ -70,8 +70,13 @@ Options:
                         state) we forget about a process. Default: 5
   -s SLEEP, --sleep=SLEEP
                         time to sleep between checks, in seconds. Default: 0.5
-  -q, --quiet           suppress some of our own stdout messages, and some of
-                        strace's attach/detach stuff
+  -v, --verbose         How much extra detail to print (our own stuff, plus
+                        e.g. whether to filter out strace's attach/detach
+                        stuff). Can be repeated.
+  -e EXPR               expression to pass through to strace -e, for example
+                        -e file. Note that unlike strace itself, our option
+                        parsing needs that space there. Note also that this
+                        also filters the summary output.
 ```
 
 
