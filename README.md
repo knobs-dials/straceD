@@ -84,4 +84,5 @@ Options:
 
 * the subprocess code had zombie issues. Though I think I fixed it, I should read up a bit more on edge cases.
 
+* check whether the duplicate-line-suppression still works, and is sensible at all.
 
