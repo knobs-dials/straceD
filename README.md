@@ -82,7 +82,6 @@ Options:
 
 ## TODO
 
-* the subprocess code had more issues than I thought, there are still zombies. Working on it.
+* the subprocess code had zombie issues. Though I think I fixed it, I should read up a bit more on edge cases.
 
-* pass through strace -e filtering
 
