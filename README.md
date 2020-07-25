@@ -23,7 +23,7 @@ The 'if they keep doing so' is 'if we see it ps output more than once, half a se
 ## Example
 
 ```
-# straceD
+# straceD -v
 Everything is behaving...
 Everything is behaving...
 Starting to trace process (PID 9673, 'music-sync-disk')
