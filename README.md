@@ -8,7 +8,7 @@ Meant as an automatic 'what programs are making my drives churn so hard, and mor
 By default you get a summary (strace's -c argument), and only once either that process has exited, or we decided it's no longer worth following (because it's no longer in in D state).
 The latter also so that you get such a summary at all on processes that rarely or never exit, like databases.
 
-If you want a more realtime and much messier feed, use -C to get all the syscalls of the process. You may then also want to use -e to have strace filter them.
+If you want a more realtime and much messier feed, add -C to get all the syscalls of the process. You may then also want to use -e to have strace filter them.
 
 
 ## Considerations
