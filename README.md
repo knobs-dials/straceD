@@ -15,7 +15,7 @@ If you want a more realtime and much messier feed, use -C to get all the syscall
 
 You need root.
 
-Programs you strace will run more slowly.
+Programs run more slowly while straced.
 
 The summary will not apply to long-running processes like databases so you're better off with -c (see if we can get strace to print these periodically? Maybe do some of our own summary?)
 
