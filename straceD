@@ -11,8 +11,9 @@ import os
 import sys
 import time
 import datetime
-import subprocess
 import threading
+import subprocess
+import signal
 import _thread
 
 watching = {} # PID -> lasttime
@@ -81,7 +82,7 @@ if __name__ == '__main__':
                  help="time to sleep between checks, in seconds. Default: 0.5")
 
     p.add_option('-v','--verbose', default=0,   action="count", dest='verbosity',  
-                 help="How much extra detail to print (our own stuff, plus e.g. whether to filter out strace's attach/detach stuff)")
+                 help="How much extra detail to print (our own stuff, plus e.g. whether to filter out strace's attach/detach stuff). Can be repeated.")
 
     p.add_option('-e', default=None,   action="store", dest='expr',
                  help="expression to pass through to strace -e, for example -e file. Note that unlike strace itself, our option parsing needs that space there. Note also that this also filters the summary output. ")
@@ -210,19 +211,25 @@ if __name__ == '__main__':
                   pid_details.pop( pid )
                   (p_or_none,th) = stracing[pid]
                   if p_or_none:
+                      # We count on strace responding to Ctrl-C with output.
+                      try:
+                          os.kill( p_or_none.pid , signal.SIGINT) # note that this is our strace's PID, not the program's
+                          time.sleep(0.5) # helps ensure the printing thread gets to it. Probably longer than necessary.
+                      except ProcessLookupError: # it's possible the process and so strace already went.
+                          pass
                       tries = 0
                       while tries < 10:
                           try:
                               tries+=1
                               p_or_none.stderr.close()
                               break
-                          except IOError as e: # most likely "close() called during concurrent operation".
+                          except IOError as e: # likely "close() called during concurrent operation".
                               # I'm no sure about the best course of action yet. Also there's a suggestion somewhere that this no longer happens in py3.
                               timeprint( "BLA %s"%str(e) )
                               time.sleep(0.001)
                               pass
                       try:
-                          p_or_none.terminate()
+                          p_or_none.terminate() # since we just gave it a SIGINT this is proably no longer necessary.
                       except OSError:
                           #print "Already dead?"
                           pass
