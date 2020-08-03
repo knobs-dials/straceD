@@ -1,6 +1,6 @@
 ## straceD
 
-Periodically checks for processes that are in D state (uninterruptable sleep, typically "waiting on IO"), straces them if they keep doing that, and stops stracing once they don't.
+Periodically checks for processes that are in D state (uninterruptable sleep, typically "waiting on IO"), straces them if they keep doing that, and stops stracing (and gives a summary) when they stop doing so.
 
 Meant as an automatic 'what programs are making my drives churn so hard, and more importantly, what for?', though it has other uses.
 
