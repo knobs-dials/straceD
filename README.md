@@ -24,31 +24,27 @@ The 'if they keep doing so' is 'if we see it ps output more than once, half a se
 ## Example
 
 ```
-# straceD -v
-Everything is behaving...
-Everything is behaving...
-Starting to trace process (PID 9673, 'music-sync-disk')
-music-sync-disk(9673):
-music-sync-disk(9673): strace: Process 9673 attached
-music-sync-disk(9673): % time     seconds  usecs/call     calls    errors syscall
-music-sync-disk(9673): ------ ----------- ----------- --------- --------- ----------------
-music-sync-disk(9673):  76.43    0.270778          40      6767           stat
-music-sync-disk(9673):  15.84    0.056105         204       275           getdents
-music-sync-disk(9673):   4.93    0.017451           8      2216           lstat
-music-sync-disk(9673):   1.66    0.005865          19       309           munmap
-music-sync-disk(9673):   0.44    0.001545          11       142           openat
-music-sync-disk(9673):   0.32    0.001129           8       144           close
-music-sync-disk(9673):   0.21    0.000741           5       142           fstat
-music-sync-disk(9673):   0.07    0.000263          10        26           write
-music-sync-disk(9673):   0.06    0.000208          15        14           read
-music-sync-disk(9673):   0.04    0.000138           4        31           mmap
-music-sync-disk(9673):   0.00    0.000016           8         2           brk
-music-sync-disk(9673):   0.00    0.000016          16         1           rt_sigreturn
-music-sync-disk(9673):   0.00    0.000015          15         1           getpid
-music-sync-disk(9673):   0.00    0.000000           0         1           rt_sigaction
-music-sync-disk(9673):   0.00    0.000000           0         1           sendto
-music-sync-disk(9673): ------ ----------- ----------- --------- --------- ----------------
-music-sync-disk(9673) end-of-strace
+# straceD
+[20:24:56.17] Starting to trace process music-sync-disk(28324)
+[20:25:45.51] music-sync-disk(28324):
+[20:25:45.51] music-sync-disk(28324): % time     seconds  usecs/call     calls    errors syscall
+[20:25:45.51] music-sync-disk(28324): ------ ----------- ----------- --------- --------- ----------------
+[20:25:45.51] music-sync-disk(28324):  80.21    0.434608          30     14722           stat
+[20:25:45.51] music-sync-disk(28324):  13.77    0.074588         174       429           getdents
+[20:25:45.51] music-sync-disk(28324):   4.69    0.025420           5      5021           lstat
+[20:25:45.51] music-sync-disk(28324):   0.58    0.003118          11       293           munmap
+[20:25:45.51] music-sync-disk(28324):   0.29    0.001575           7       211           openat
+[20:25:45.51] music-sync-disk(28324):   0.22    0.001198           6       214           close
+[20:25:45.51] music-sync-disk(28324):   0.13    0.000721           3       211           fstat
+[20:25:45.51] music-sync-disk(28324):   0.07    0.000360          10        35           write
+[20:25:45.51] music-sync-disk(28324):   0.02    0.000125           8        16           read
+[20:25:45.51] music-sync-disk(28324):   0.01    0.000068          11         6           mmap
+[20:25:45.51] music-sync-disk(28324):   0.00    0.000015          15         1           rt_sigreturn
+[20:25:45.51] music-sync-disk(28324):   0.00    0.000015          15         1           getpid
+[20:25:45.51] music-sync-disk(28324):   0.00    0.000004           4         1           brk
+[20:25:45.51] music-sync-disk(28324):   0.00    0.000004           4         1           rt_sigaction
+[20:25:45.51] music-sync-disk(28324):   0.00    0.000000           0         1           sendto
+[20:25:45.51] music-sync-disk(28324): ------ ----------- ----------- --------- --------- ----------------
 
 ```
 
