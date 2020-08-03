@@ -79,7 +79,7 @@ Options:
 
 ## TODO
 
-* the subprocess code had zombie issues. Though I think I fixed it, I should read up a bit more on edge cases.
+* the subprocess code had zombie issues. I think I fixed it, but should still read up more on edge cases.
 
 * check whether the duplicate-line-suppression still works, and is sensible at all.
 
