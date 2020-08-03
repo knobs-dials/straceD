@@ -2,7 +2,7 @@
 
 Periodically checks for processes that are in D state (uninterruptable sleep, typically "waiting on IO"), straces them if they keep doing that, and stops stracing (and gives a summary) when they stop doing so.
 
-Meant as an automatic 'what programs are making my drives churn so hard, and more importantly, what for?', though it has other uses.
+Meant as an automatic 'what programs are making my drives churn so hard, and more importantly, what for?'.
 
 
 By default you get a summary (strace's -c argument), and only once either the offending process has exited, or we decided it's no longer worth following (because it's no longer in in D state). The latter also so that you get such a summary at all on processes that rarely or never exit, like databases.
