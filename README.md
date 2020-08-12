@@ -18,7 +18,7 @@ Programs run more slowly while having strace attached to it.
 
 I think a process can be straced only once at a time, so think about possible clashes with similar tools, debuggers and such.
 
-The 'if they keep doing so' is 'if we see it ps output more than once, half a second apart' (with defaults) is pretty coarse and can miss small things. Though that's tweakable, and arguably a feature.
+The 'if they keep doing so' test is 'if we see it ps output more than once, half a second apart' (with defaults) is pretty coarse and can miss small things (arguably a feature), , but also be a little spammy. It should probably be a little more tweakable.
 
 
 ## Example
