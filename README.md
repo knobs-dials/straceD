@@ -1,14 +1,13 @@
 ## straceD
 
-Periodically checks for processes that are in D state (uninterruptable sleep, typically "waiting on IO"), straces them if they keep doing that, and stops stracing once they don't.
+Periodically checks for processes that are in D state (uninterruptable sleep, typically "waiting on IO" and then usually "waiting on disk"), straces them if they keep doing that, and stops stracing (and gives a summary) when they stop doing so.
 
-Meant as an automatic 'what programs are making my drives churn so hard, and more importantly, what for?', though it has other uses.
+Meant as an automatic 'what programs are making my drives churn so hard, and more importantly, what for?'.
 
 
-By default you get a summary (strace's -c argument), and only once either that process has exited, or we decided it's no longer worth following (because it's no longer in in D state).
-The latter also so that you get such a summary at all on processes that rarely or never exit, like databases.
+By default you get a summary (strace's -c argument), and only once the offending process has exited, or we decided it's no longer worth following (because it's no longer in in D state), or we pressed Ctrl-C to stop straceD.   The last two help get summaries on processes that rarely or never exit, like databases and other daemons.
 
-If you want a more realtime and much messier feed, use -C to get all the syscalls of the process. You may then also want to use -e to have strace filter them.
+If you want a more realtime (and much messier) feed, add -C to get all the syscalls of the process. You may then also want to use -e to have strace filter them.
 
 
 ## Considerations
@@ -19,37 +18,33 @@ Programs run more slowly while having strace attached to it.
 
 I think a process can be straced only once at a time, so think about possible clashes with similar tools, debuggers and such.
 
-The 'if they keep doing so' is 'if we see it ps output more than once, half a second apart' (with defaults) is pretty coarse and can miss small things. Though that's tweakable, and arguably a feature.
+The "if is stays in D state" is actually "if ps reports that more than once, half a second apart" (with defaults), which is somewhat coarse and can miss small things (arguably a feature), but can also be a little spammy. It should probably be a little more tweakable.
 
 
 ## Example
 
 ```
-# straceD -v
-Everything is behaving...
-Everything is behaving...
-Starting to trace process (PID 9673, 'music-sync-disk')
-music-sync-disk(9673):
-music-sync-disk(9673): strace: Process 9673 attached
-music-sync-disk(9673): % time     seconds  usecs/call     calls    errors syscall
-music-sync-disk(9673): ------ ----------- ----------- --------- --------- ----------------
-music-sync-disk(9673):  76.43    0.270778          40      6767           stat
-music-sync-disk(9673):  15.84    0.056105         204       275           getdents
-music-sync-disk(9673):   4.93    0.017451           8      2216           lstat
-music-sync-disk(9673):   1.66    0.005865          19       309           munmap
-music-sync-disk(9673):   0.44    0.001545          11       142           openat
-music-sync-disk(9673):   0.32    0.001129           8       144           close
-music-sync-disk(9673):   0.21    0.000741           5       142           fstat
-music-sync-disk(9673):   0.07    0.000263          10        26           write
-music-sync-disk(9673):   0.06    0.000208          15        14           read
-music-sync-disk(9673):   0.04    0.000138           4        31           mmap
-music-sync-disk(9673):   0.00    0.000016           8         2           brk
-music-sync-disk(9673):   0.00    0.000016          16         1           rt_sigreturn
-music-sync-disk(9673):   0.00    0.000015          15         1           getpid
-music-sync-disk(9673):   0.00    0.000000           0         1           rt_sigaction
-music-sync-disk(9673):   0.00    0.000000           0         1           sendto
-music-sync-disk(9673): ------ ----------- ----------- --------- --------- ----------------
-music-sync-disk(9673) end-of-strace
+# straceD
+[20:24:56.17] Starting to trace process music-sync-disk(28324)
+[20:25:45.51] music-sync-disk(28324):
+[20:25:45.51] music-sync-disk(28324): % time     seconds  usecs/call     calls    errors syscall
+[20:25:45.51] music-sync-disk(28324): ------ ----------- ----------- --------- --------- ----------------
+[20:25:45.51] music-sync-disk(28324):  80.21    0.434608          30     14722           stat
+[20:25:45.51] music-sync-disk(28324):  13.77    0.074588         174       429           getdents
+[20:25:45.51] music-sync-disk(28324):   4.69    0.025420           5      5021           lstat
+[20:25:45.51] music-sync-disk(28324):   0.58    0.003118          11       293           munmap
+[20:25:45.51] music-sync-disk(28324):   0.29    0.001575           7       211           openat
+[20:25:45.51] music-sync-disk(28324):   0.22    0.001198           6       214           close
+[20:25:45.51] music-sync-disk(28324):   0.13    0.000721           3       211           fstat
+[20:25:45.51] music-sync-disk(28324):   0.07    0.000360          10        35           write
+[20:25:45.51] music-sync-disk(28324):   0.02    0.000125           8        16           read
+[20:25:45.51] music-sync-disk(28324):   0.01    0.000068          11         6           mmap
+[20:25:45.51] music-sync-disk(28324):   0.00    0.000015          15         1           rt_sigreturn
+[20:25:45.51] music-sync-disk(28324):   0.00    0.000015          15         1           getpid
+[20:25:45.51] music-sync-disk(28324):   0.00    0.000004           4         1           brk
+[20:25:45.51] music-sync-disk(28324):   0.00    0.000004           4         1           rt_sigaction
+[20:25:45.51] music-sync-disk(28324):   0.00    0.000000           0         1           sendto
+[20:25:45.51] music-sync-disk(28324): ------ ----------- ----------- --------- --------- ----------------
 
 ```
 
@@ -84,7 +79,7 @@ Options:
 
 ## TODO
 
-* the subprocess code had zombie issues. Though I think I fixed it, I should read up a bit more on edge cases.
+* the subprocess code had zombie issues. I think I fixed it, but should still read up more on edge cases.
 
 * check whether the duplicate-line-suppression still works, and is sensible at all.
 
