@@ -5,6 +5,7 @@ Meant as an automatic 'what programs are making my drives churn so hard, and why
 More technically, it periodically checks for processes that are in D state (uninterruptable sleep, typically "waiting on IO" and then usually "waiting on disk"), straces them if they keep doing that, and stops stracing (and gives a summary) when they stop doing so, or you press Ctrl-C (also helps summaries on processes that rarely or never exit, like databases and other daemons). 
 
 By default you get a summary (strace's -c argument) when it stops for any of those reasons.
+
 If you want a more realtime (and much messier) feed, add -C to get all the syscalls of the process. You may then also want to use -e to have strace filter them.
 
 
