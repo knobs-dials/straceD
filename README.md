@@ -1,8 +1,8 @@
 ## straceD
 
-Meant as an automatic 'what programs are making my drives churn so hard, and why?'
+Intended as an automatic 'what programs are making my drives churn so hard, and why?'
 
-It periodically checks for processes that are in D state (uninterruptable sleep, typically "waiting on IO" and then usually "waiting on disk"), straces them if they keep doing that, and stops stracing (and gives a summary) when they stop doing so, or you press Ctrl-C (also helps summaries on processes that rarely or never exit, like databases and other daemons). 
+Periodically checks for processes that are in D state (uninterruptable sleep, typically "waiting on IO" and then usually "waiting on disk"), straces them if they keep doing that, and stops stracing (and gives a summary) when they stop doing so OR you press Ctrl-C (also helps summaries on processes that rarely or never exit, like databases and other daemons). 
 
 By default you get a summary (strace's -c argument) when it stops for any of those reasons.
 
