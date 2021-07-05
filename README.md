@@ -11,11 +11,11 @@ If you want a more realtime (and much messier) feed, add -C to get all the sysca
 
 ## Considerations
 
-You need root rights.
-
 Programs run more slowly while having strace attached to it.
 
-I think a process can be straced only once at a time, so consider possible clashes with similar tools, debuggers and such.
+I'm fairly sure that a process can be straced by only one thing at a time, so consider possible clashes with similar tools, debuggers and such.
+
+You need root rights.
 
 The "if is stays in D state" is actually "if `ps` reports that more than once, some time apart", which is somewhat coarse. I consider this a feature because it ignores some short syscalls, but you may wish to lower it.
 
