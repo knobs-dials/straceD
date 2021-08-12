@@ -10,7 +10,7 @@ Stops stracing and gives a summary when they stop doing so OR you press Ctrl-C o
 
 By default you get a summary (strace's `-c` argument), once we stop tracing for either of those reasons.
 
-If you want a more realtime (and much messier) feed, add `-C` to get all the syscalls of the process. You may then also want to use `-e` to have strace filter a bit more.
+If you want a more realtime (and much spammier) feed, add `-C` to get all the syscalls of the process. You may then also want to use `-e` to have strace filter a bit more.
 
 
 ## Considerations
