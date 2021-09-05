@@ -84,3 +84,4 @@ Options:
 
 * check whether the duplicate-line-suppression still works, and is sensible at all.
 
+* look at non-linux `ps` implementations
