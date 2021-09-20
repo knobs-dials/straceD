@@ -5,7 +5,8 @@ Intended as an automated answer to the question 'what programs are making my dri
 
 Periodically checks for processes that are in D state (uninterruptable sleep, typically "waiting on IO" and then usually "waiting on disk"), `strace`s them if they keep doing that. 
 
-Stops stracing and gives a summary when they stop doing so OR you press Ctrl-C on this program. The latter helps summaries on processes that rarely or never exit, like databases and other daemons. 
+Stops stracing and gives a summary when they stop being in D state, stop running, OR you press Ctrl-C on this program. 
+The last can help give summaries on processes that rarely or never exit, like databases and other daemons. 
 
 
 By default you get a summary (strace's `-c` argument), once we stop tracing for either of those reasons. If you want a more realtime (and much spammier) feed, add `-C` to get all the syscalls of the process. You may then also want to use `-e` to have strace filter a bit more.
