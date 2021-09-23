@@ -1,24 +1,26 @@
 ## straceD
 
-Periodically checks for processes that are in D state (uninterruptable sleep, typically "waiting on IO" and then usually "waiting on disk"), straces them if they keep doing that, and stops stracing (and gives a summary) when they stop doing so.
-
-Meant as an automatic 'what programs are making my drives churn so hard, and more importantly, what for?'.
+Intended as an automated answer to "what programs are making my drives churn so hard, and why?"
 
 
-By default you get a summary (strace's -c argument), and only once the offending process has exited, or we decided it's no longer worth following (because it's no longer in in D state), or we pressed Ctrl-C to stop straceD.   The last two help get summaries on processes that rarely or never exit, like databases and other daemons.
+Periodically checks for processes that are in D state (uninterruptable sleep, typically "waiting on IO" and then usually "waiting on disk"), `strace`s them if they keep doing that. 
 
-If you want a more realtime (and much messier) feed, add -C to get all the syscalls of the process. You may then also want to use -e to have strace filter them.
+Stops stracing and gives a summary when they stop being in D state, stops running, OR you press Ctrl-C on this program. 
+The last can help give summaries on processes that rarely or never exit, like databases and other daemons. 
+
+
+By default you get a summary (strace's `-c` argument), once we stop tracing for either of those reasons. If you want a more realtime (and much spammier) feed, add `-C` to get all the syscalls of the process. You may then also want to use `-e` to have strace filter a bit more.
 
 
 ## Considerations
 
-You need root.
-
 Programs run more slowly while having strace attached to it.
 
-I think a process can be straced only once at a time, so think about possible clashes with similar tools, debuggers and such.
+I'm fairly sure that a process can be straced by only one thing at a time, so consider possible clashes with similar tools, debuggers and such.
 
-The "if is stays in D state" is actually "if ps reports that more than once, half a second apart" (with defaults), which is somewhat coarse and can miss small things (arguably a feature), but can also be a little spammy. It should probably be a little more tweakable.
+You need root rights.
+
+The "if is stays in D state" is actually "if runs of `ps` reports that more than once, some time apart", which is somewhat coarse. I consider this a feature because it ignores some short syscalls, but you may wish to lower it.
 
 
 ## Example
@@ -83,3 +85,4 @@ Options:
 
 * check whether the duplicate-line-suppression still works, and is sensible at all.
 
+* look at non-linux `ps` implementations
