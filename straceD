@@ -19,8 +19,6 @@ import _thread
 watching = {} # PID -> lasttime
 
 def timeprint(s):
-    #if type(s) is bytes:
-    #    s = s.decode('u8') 
     now = datetime.datetime.now()
     now_s = '%02d:%02d:%05.2f'%(now.hour, now.minute, now.second + now.microsecond/1E6) # want rounding of microsceonds, so not using strftime
     print('[%s] %s'%(now_s, s))
@@ -43,7 +41,7 @@ def check_D_jobs():
             l = line.strip().split(None,5) 
             pid,uname,state,cpupercent,cputime,command = l
             if b'D' in state:
-                report_lines.append( (int(pid),uname.decode('u8'),state.decode('u8'),int(float(cpupercent)),cputime,command.decode('u8')) )
+                report_lines.append( (int(pid),uname.decode('utf8'),state.decode('utf8'),int(float(cpupercent)),cputime,command.decode('utf8')) )
     return report_lines
 
 
