@@ -82,7 +82,7 @@ Options:
 
 ## TODO
 
-* compatibility with non-linux `ps` implementations
+* portablity, e.g. compatibility with non-linux `ps` implementations
 
 * the subprocess code had zombie issues. I think I fixed it, but should still read up more on edge cases.
 
