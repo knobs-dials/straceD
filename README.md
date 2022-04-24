@@ -3,9 +3,10 @@
 Intended as an automated answer to "what programs are making my drives churn so hard, and why?"
 
 - Periodically checks for processes that are in D state (uninterruptable sleep, typically "waiting on IO" and then usually "waiting on disk"), 
-  - ...and `strace`s them if they keep doing that. 
+- ...and `strace`s them if they keep doing that. 
 - Stops stracing and gives a summary when they stop being in D state, stops running, OR you press Ctrl-C on this program. 
-  - The last helps give summaries on processes that rarely or never exit, like databases and other daemons. 
+
+The last helps give summaries on processes that rarely or never exit, like databases and other daemons. 
 
 By default you get a summary (strace's `-c` argument), once we stop tracing for either of those reasons.
 
