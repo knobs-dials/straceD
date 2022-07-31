@@ -5,7 +5,7 @@ Intended as an automated answer to "what programs are making my drives churn so 
 - Periodically checks for processes that are in D state (uninterruptable sleep, typically "waiting on IO" and then usually "waiting on disk"), 
 - ...and `strace`s them if they keep doing that. 
 - Stops stracing and gives a summary when 
-  - it stop being in D state, OR
+  - it stops being in D state, OR
   - the process stops running, OR
   - you press Ctrl-C on _this_ program. 
 
