@@ -89,3 +89,5 @@ Options:
 
 * the subprocess code had zombie issues. I think I fixed it, but should still read up more on edge cases.
 
+* add 'ignore process called X' parameter, e.g. to ignore the database on a database host
+
