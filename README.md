@@ -17,13 +17,13 @@ If you want a more realtime (and much spammier) feed, add `-C` to get all the sy
 
 ## Considerations
 
+You need root rights.
+
 Programs run more slowly while having strace attached to it.
 
 I'm fairly sure that a process can be straced by only one thing at a time, so consider possible clashes with similar tools, debuggers and such.
 
-You need root rights.
-
-The "if it stays in D state" is actually "if runs of `ps` reports D state more than once, some time apart", which is somewhat coarse.
+The "if it stays in D state" check is actually "if runs of `ps` reports D state more than once, some time apart", which is somewhat coarse.
 I consider this a feature because it ends up ignoring some (series of) shorter-but-not-instant syscalls (like smartd's), but you may wish to lower it.
 
 
