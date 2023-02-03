@@ -6,15 +6,9 @@
     Meant as a simple-and-stupid "why are my drives churning" 
 '''
 
-import optparse
-import os
-import sys
-import time
-import datetime
-import threading
-import subprocess
-import signal
-import _thread
+import optparse, os, sys
+import time, datetime
+import threading, subprocess, _thread, signal
 
 watching = {} # PID -> lasttime
 
