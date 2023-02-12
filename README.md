@@ -6,7 +6,7 @@ Intended as an automated answer to "what programs are making my drives churn so 
 - ...and `strace`s them if they keep doing that. 
 - Stops stracing and gives a summary when 
   - it stops being in D state, OR
-  - the process stops running, OR
+  - the traced process stops running, OR
   - you press Ctrl-C on _this_ program. 
 
 The last helps give summaries on processes that rarely or never exit, like databases and other daemons. 
