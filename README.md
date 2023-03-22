@@ -7,11 +7,9 @@ Intended as an automated answer to "what programs are making my drives churn so 
 - Stops stracing and gives a summary when 
   - it stops being in D state, OR
   - the traced process stops running, OR
-  - you press Ctrl-C on _this_ program. 
+  - you press Ctrl-C on _this_ program (helps give summaries on processes that rarely or never exit, like databases and other daemons)
 
-The last helps give summaries on processes that rarely or never exit, like databases and other daemons. 
-
-By default you get a summary (strace's `-c` argument), once we stop tracing for either of those reasons.
+By default you get a summary (strace's `-c` argument), only once we stop tracing for any of those reasons.
 If you want a more realtime (and much spammier) feed, add `-C` to get all the syscalls of the process. You may then also want to use `-e` to have strace filter a bit more.
 
 
