@@ -22,7 +22,7 @@ Programs run more slowly while having strace attached to it.
 I'm fairly sure that a process can be straced by only one thing at a time, so consider possible clashes with similar tools, debuggers and such.
 
 The "if it stays in D state" check is actually "if runs of `ps` reports D state more than once, some time apart", which is coarse and can miss things.
-I consider this a feature because it ends up ignoring some (series of) shorter-but-not-instant syscalls (like smartd's), but you may wish to lower it.
+I consider this a feature because it ends up ignoring some (series of) shorter-but-not-instant syscalls (like smartd's), but for specific purposes you may wish to lower it.
 
 
 ## Example
